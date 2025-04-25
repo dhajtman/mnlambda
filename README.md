@@ -16,6 +16,43 @@ If you want to deploy to AWS Lambda as a GraalVM native image, run:
 
 This will build the GraalVM native image inside a docker container and generate the `function.zip` ready for the deployment.
 
+## Terraform
+1. **Check AWS region**:
+    ```bash
+    aws configure get region
+    ```
+2. **Set AWS region**:
+    ```bash
+    export AWS_REGION=us-east-1
+    ```
+3. **cd to terraform directory**:
+    ```bash
+    cd terraform
+    ```
+4. **Initialize Terraform**:
+    ```bash
+    terraform init
+    ```
+5. **Apply Terraform configuration**:
+    ```bash
+    terraform apply -var-file=terraform_A75.tfvars # specific .tfvars file
+    ```
+6. **List all deployed resources**:
+    ```bash
+    terraform state list
+    ```
+7. **Destroy all resources**:
+    ```bash
+    terraform destroy -var-file=terraform_A75.tfvars
+    ```
+8. **Update only Lambda jar**:
+    ```bash
+    aws lambda update-function-code --function-name entsoe-scraper --zip-file fileb://../target/function.zip
+    ```
+9. **If required, deleting ENI or you may need to wait**:
+   ```bash
+   aws ec2 delete-network-interface --network-interface-id eni-1234567890abcdef0
+   ```
 
 ## Handler
 
