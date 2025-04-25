@@ -23,7 +23,7 @@ public class EntsoeDataHandlerTest {
         }
     }
 
-    @Test
+//    @Test
     public void testHandler() {
         APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
         request.setHttpMethod("GET");

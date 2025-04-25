@@ -109,5 +109,5 @@ variable "timeout" {
 variable "memory_size" {
   type        = number
   description = "The memory size for the Lambda function in MB"
-  default     = 256 # Memory size in MB
+  default     = 512 # Memory size in MB
 }
