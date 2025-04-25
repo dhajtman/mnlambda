@@ -6,6 +6,6 @@ resource "aws_s3_bucket" "entsoe_data" {
 }
 
 # Create an S3 bucket for Terraform backend
-resource "aws_s3_bucket" "terraform_backend" {
-  bucket = "entsoe-backend-bucket" # Replace with your backend bucket name
-}
+# resource "aws_s3_bucket" "terraform_backend" {
+#   bucket = "entsoe-backend-bucket" # Replace with your backend bucket name
+# }

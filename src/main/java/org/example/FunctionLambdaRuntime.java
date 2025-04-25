@@ -28,6 +28,6 @@ public class FunctionLambdaRuntime extends AbstractMicronautLambdaRuntime<APIGat
     @Override
     @Nullable
     protected RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> createRequestHandler(String... args) {
-        return new FunctionRequestHandler();
+        return new EntsoeDataHandler();
     }
 }

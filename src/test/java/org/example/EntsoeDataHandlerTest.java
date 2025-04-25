@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FunctionRequestHandlerTest {
+public class EntsoeDataHandlerTest {
 
-    private static FunctionRequestHandler handler;
+    private static EntsoeDataHandler handler;
 
     @BeforeAll
     public static void setupServer() {
-        handler = new FunctionRequestHandler();
+        handler = new EntsoeDataHandler();
     }
 
     @AfterAll
