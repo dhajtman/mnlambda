@@ -17,6 +17,12 @@ If you want to deploy to AWS Lambda as a GraalVM native image, run:
 This will build the GraalVM native image inside a docker container and generate the `function.zip` ready for the deployment.
 
 ## Terraform
+0. **Create backend S3 bucket**
+   ```bash
+   cd terraform/remote-state
+   terraform init && terraform apply
+   cd ..
+   ```
 1. **Check AWS region**:
     ```bash
     aws configure get region
