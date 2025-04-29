@@ -1,0 +1,16 @@
+#Fri Apr 25 09:01:40 CEST 2025
+micronaut:
+  application:
+    name: mnlambda
+
+entsoe:
+  apiUrlTemplate: "https://api.example.com?document_type={document_type}&process_type={process_type}&in_domain={in_domain}&period_start={period_start}&period_end={period_end}&api_url_token={api_url_token}"
+  apiUrlToken: "your-api-token"
+  documentType: "A75"
+  processType: "A16"
+  inDomain: "10Y1001A1001A83F"
+  periodStart: "202308152200"
+  periodEnd: "202308162200"
+  bucketName: "entsoe-data-buckets"
+  outputPrefix: "entsoe-data"
+  targetKey: "quantity"

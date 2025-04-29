@@ -8,5 +8,5 @@ target_key    = "quantity" # The target key to parse ENTSOE API response
 schedule_expression = "rate(1 day)" # Default value
 s3_bucket_name     = "entsoe-data-buckets"
 output_prefix = "entsoe-data"
-secret_token_name = "entsoe_api_token9" # Name of the secret in AWS Secrets Manage
-entsoe_api_url_token = "xxxxxx-0497-41e0-b46f-8b0f49c57ca0"
+secret_token_name = "entsoe_api_token10" # Name of the secret in AWS Secrets Manage
+entsoe_api_url_token = "90765852-0497-41e0-b46f-8b0f49c57ca0"

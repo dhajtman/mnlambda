@@ -1,12 +1,11 @@
 package org.example;
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import com.amazonaws.services.lambda.runtime.logging.LogLevel;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.function.aws.MicronautRequestHandler;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -24,7 +23,17 @@ import java.util.Map;
 
 public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     private static final Logger LOG = LoggerFactory.getLogger(EntsoeDataHandler.class);
-    private static final S3Client S3_CLIENT = S3Client.builder().build();
+    private final S3Client s3Client;
+    private final HttpClient httpClient;
+    private final EntsoeConfig entsoeConfig;
+    private final XmlMapper xmlMapper = new XmlMapper();
+
+    @Inject
+    public EntsoeDataHandler(S3Client s3Client, HttpClient httpClient, EntsoeConfig entsoeConfig) {
+        this.s3Client = s3Client;
+        this.httpClient = httpClient;
+        this.entsoeConfig = entsoeConfig;
+    }
 
     @Override
     public APIGatewayProxyResponseEvent execute(APIGatewayProxyRequestEvent input) {
@@ -38,38 +47,19 @@ public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRe
         LOG.info("System Properties: " + System.getProperties());
 
         try {
-            // Access environment variables
-            String apiUrlTemplate = System.getenv().getOrDefault("API_URL",
-                    "https://web-api.tp.entsoe.eu/api?documentType={document_type}&processType={process_type}&in_Domain={in_domain}&periodStart={period_start}&periodEnd={period_end}&securityToken={api_url_token}");
-            String apiUrlToken = System.getenv().getOrDefault("API_URL_TOKEN", "xxxxxx");
-            String documentType = System.getenv().getOrDefault("DOCUMENT_TYPE", "A75");
-            String processType = System.getenv().getOrDefault("PROCESS_TYPE", "A16");
-            String inDomain = System.getenv().getOrDefault("IN_DOMAIN", "10Y1001A1001A83F");
-            String periodStart = System.getenv().getOrDefault("PERIOD_START", "202308152200");
-            String periodEnd = System.getenv().getOrDefault("PERIOD_END", "202308162200");
-            String targetKey = System.getenv().getOrDefault("TARGET_KEY", "quantity");
+            String apiUrl = assemblyApiUrl();
 
-            String bucketName = System.getenv().getOrDefault("S3_BUCKET", "entsoe-data-buckets");
-            String outputPrefix = System.getenv().getOrDefault("OUTPUT_PREFIX", "entsoe-data");
-
-            String apiUrl = assembleApiUrl(apiUrlTemplate, documentType, processType, inDomain, periodStart, periodEnd, apiUrlToken);
-
-            // Fetch data from the API
             String responseData = fetchDataFromApi(apiUrl);
             LOG.info("Got response: " + responseData);
 
-            // Process the data dynamically
-            List<String> processedData = processData(responseData, targetKey);
+            List<String> processedData = processData(responseData, entsoeConfig.getTargetKey());
             LOG.info("Processed data: " + processedData);
 
-            // Convert the data to CSV format
             String csvData = String.join(",", processedData);
 
-            // Generate a unique file name
-            String fileName = String.format("%s-%s.csv", outputPrefix, Instant.now().toString());
+            String fileName = String.format("%s-%s.csv", entsoeConfig.getOutputPrefix(), Instant.now().toString());
 
-            // Upload the CSV to S3
-            uploadToS3(bucketName, fileName, csvData);
+            uploadToS3(entsoeConfig.getBucketName(), fileName, csvData);
 
             LOG.info("Data successfully uploaded to S3: " + fileName);
 
@@ -83,23 +73,23 @@ public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRe
         }
     }
 
-    private String assembleApiUrl(String apiUrl, String documentType, String processType, String inDomain, String periodStart, String periodEnd, String apiUrlToken) {
-        return apiUrl.replace("{document_type}", documentType)
-                .replace("{process_type}", processType)
-                .replace("{in_domain}", inDomain)
-                .replace("{period_start}", periodStart)
-                .replace("{period_end}", periodEnd)
-                .replace("{api_url_token}", apiUrlToken);
+    private String assemblyApiUrl() {
+        return entsoeConfig.getApiUrlTemplate()
+                .replace("{document_type}", entsoeConfig.getDocumentType())
+                .replace("{process_type}", entsoeConfig.getProcessType())
+                .replace("{in_domain}", entsoeConfig.getInDomain())
+                .replace("{period_start}", entsoeConfig.getPeriodStart())
+                .replace("{period_end}", entsoeConfig.getPeriodEnd())
+                .replace("{api_url_token}", entsoeConfig.getApiUrlToken());
     }
 
     private String fetchDataFromApi(String apiUrl) throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
                 .GET()
                 .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200) {
             LOG.error("Failed to fetch data from API: " + response.statusCode() + " " + response.body());
             throw new RuntimeException("Failed to fetch data from API: " + response.body());
@@ -108,7 +98,6 @@ public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRe
     }
 
     public List<String> processData(String xmlData, String targetKey) throws Exception {
-        XmlMapper xmlMapper = new XmlMapper();
         Map<String, Object> root = xmlMapper.readValue(xmlData, Map.class);
 
         List<String> extractedValues = new ArrayList<>();
@@ -140,6 +129,6 @@ public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRe
                 .key(key)
                 .build();
 
-        S3_CLIENT.putObject(putObjectRequest, RequestBody.fromString(data));
+        s3Client.putObject(putObjectRequest, RequestBody.fromString(data));
     }
 }
