@@ -16,6 +16,13 @@ If you want to deploy to AWS Lambda as a GraalVM native image, run:
 
 This will build the GraalVM native image inside a docker container and generate the `function.zip` ready for the deployment.
 
+Build with Docker:
+
+```bash
+docker build -t micronaut-aws-lambda .
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd):/app -w /app micronaut-lambda-builder
+```
+
 ## Terraform
 0. **Create backend S3 bucket**
    ```bash
