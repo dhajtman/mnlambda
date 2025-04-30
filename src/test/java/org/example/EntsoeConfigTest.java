@@ -24,6 +24,6 @@ public class EntsoeConfigTest {
     @Test
     public void testEntsoeConfigValues() {
         assertNotNull(entsoeConfig);
-        assertNotNull(entsoeConfig.getAPI_URL());
+        assertNotNull(entsoeConfig.getApiUrl());
     }
 }

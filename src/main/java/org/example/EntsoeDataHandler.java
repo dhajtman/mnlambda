@@ -27,13 +27,12 @@ public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRe
 
     private final S3Client s3Client;
     private final HttpClient httpClient;
-    private EntsoeConfig entsoeConfig;
+    private final EntsoeConfig entsoeConfig;
 
     public EntsoeDataHandler() {
         this.s3Client = S3Client.create();
         this.httpClient = HttpClient.newHttpClient();
         this.entsoeConfig = getApplicationContext().getBean(EntsoeConfig.class);
-//        this.entsoeConfig = new EntsoeConfig();
     }
 
     public EntsoeDataHandler(S3Client s3Client, HttpClient httpClient, EntsoeConfig entsoeConfig) {
@@ -55,18 +54,20 @@ public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRe
 
         try {
             String apiUrl = assemblyApiUrl();
+            String sanitizedApiUrl = apiUrl.replaceAll("&?api_url_token=[^&]*", "");
+            LOG.info("Sanitized API URL: " + sanitizedApiUrl);
 
             String responseData = fetchDataFromApi(apiUrl);
-            LOG.info("Got response: " + responseData);
+            LOG.info("Got response with size: " + responseData.length());
 
-            List<String> processedData = processData(responseData, entsoeConfig.getTARGET_KEY());
+            List<String> processedData = processData(responseData, entsoeConfig.getTargetKey());
             LOG.info("Processed data: " + processedData);
 
             String csvData = String.join(",", processedData);
 
-            String fileName = String.format("%s-%s.csv", entsoeConfig.getOUTPUT_PREFIX(), Instant.now().toString());
+            String fileName = String.format("%s-%s.csv", entsoeConfig.getOutputPrefix(), Instant.now().toString());
 
-            uploadToS3(entsoeConfig.getS3_BUCKET(), fileName, csvData);
+            uploadToS3(entsoeConfig.getS3Bucket(), fileName, csvData);
 
             LOG.info("Data successfully uploaded to S3: " + fileName);
 
@@ -81,13 +82,13 @@ public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRe
     }
 
     private String assemblyApiUrl() {
-        return entsoeConfig.getAPI_URL()
-                .replace("{document_type}", entsoeConfig.getDOCUMENT_TYPE())
-                .replace("{process_type}", entsoeConfig.getPROCESS_TYPE())
-                .replace("{in_domain}", entsoeConfig.getIN_DOMAIN())
-                .replace("{period_start}", entsoeConfig.getPERIOD_START())
-                .replace("{period_end}", entsoeConfig.getPERIOD_END())
-                .replace("{api_url_token}", entsoeConfig.getAPI_URL_TOKEN());
+        return entsoeConfig.getApiUrl()
+                .replace("{document_type}", entsoeConfig.getDocumentType())
+                .replace("{process_type}", entsoeConfig.getProcessType())
+                .replace("{in_domain}", entsoeConfig.getInDomain())
+                .replace("{period_start}", entsoeConfig.getPeriodStart())
+                .replace("{period_end}", entsoeConfig.getPeriodEnd())
+                .replace("{api_url_token}", entsoeConfig.getApiUrlToken());
     }
 
     private String fetchDataFromApi(String apiUrl) throws Exception {
