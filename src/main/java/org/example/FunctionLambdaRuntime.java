@@ -28,6 +28,6 @@ public class FunctionLambdaRuntime extends AbstractMicronautLambdaRuntime<APIGat
     @Override
     @Nullable
     protected RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> createRequestHandler(String... args) {
-        return getApplicationContext().getBean(EntsoeDataHandler.class);
+        return new EntsoeDataHandler();
     }
 }

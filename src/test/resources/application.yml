@@ -5,14 +5,14 @@ micronaut:
   environment:
     active: test
 
-entsoe:
-  apiUrlTemplate: "https://api.example.com?document_type={document_type}&process_type={process_type}&in_domain={in_domain}&period_start={period_start}&period_end={period_end}&api_url_token={api_url_token}"
-  apiUrlToken: "your-api-token"
-  documentType: "A75"
-  processType: "A16"
-  inDomain: "10Y1001A1001A83F"
-  periodStart: "202308152200"
-  periodEnd: "202308162200"
-  bucketName: "entsoe-data-buckets"
-  outputPrefix: "entsoe-data"
-  targetKey: "quantity"
+# app configuration values
+API_URL: "https://api.example.com?document_type={document_type}&process_type={process_type}&in_domain={in_domain}&period_start={period_start}&period_end={period_end}&api_url_token={api_url_token}"
+API_URL_TOKEN: "your-api-token"
+DOCUMENT_TYPE: "A75"
+PROCESS_TYPE: "A16"
+IN_DOMAIN: "10Y1001A1001A83F"
+PERIOD_START: "202308152200"
+PERIOD_END: "202308162200"
+S3_BUCKET: "entsoe-data-buckets"
+OUTPUT_PREFIX: "entsoe-data"
+TARGET_KEY: "quantity"

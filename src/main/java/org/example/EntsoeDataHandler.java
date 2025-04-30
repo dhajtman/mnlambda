@@ -5,7 +5,6 @@ import io.micronaut.function.aws.MicronautRequestHandler;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -21,14 +20,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+
 public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     private static final Logger LOG = LoggerFactory.getLogger(EntsoeDataHandler.class);
-    private final S3Client s3Client;
-    private final HttpClient httpClient;
-    private final EntsoeConfig entsoeConfig;
     private final XmlMapper xmlMapper = new XmlMapper();
 
-    @Inject
+    private final S3Client s3Client;
+    private final HttpClient httpClient;
+    private EntsoeConfig entsoeConfig;
+
+    public EntsoeDataHandler() {
+        this.s3Client = S3Client.create();
+        this.httpClient = HttpClient.newHttpClient();
+        this.entsoeConfig = getApplicationContext().getBean(EntsoeConfig.class);
+//        this.entsoeConfig = new EntsoeConfig();
+    }
+
     public EntsoeDataHandler(S3Client s3Client, HttpClient httpClient, EntsoeConfig entsoeConfig) {
         this.s3Client = s3Client;
         this.httpClient = httpClient;
@@ -52,14 +59,14 @@ public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRe
             String responseData = fetchDataFromApi(apiUrl);
             LOG.info("Got response: " + responseData);
 
-            List<String> processedData = processData(responseData, entsoeConfig.getTargetKey());
+            List<String> processedData = processData(responseData, entsoeConfig.getTARGET_KEY());
             LOG.info("Processed data: " + processedData);
 
             String csvData = String.join(",", processedData);
 
-            String fileName = String.format("%s-%s.csv", entsoeConfig.getOutputPrefix(), Instant.now().toString());
+            String fileName = String.format("%s-%s.csv", entsoeConfig.getOUTPUT_PREFIX(), Instant.now().toString());
 
-            uploadToS3(entsoeConfig.getBucketName(), fileName, csvData);
+            uploadToS3(entsoeConfig.getS3_BUCKET(), fileName, csvData);
 
             LOG.info("Data successfully uploaded to S3: " + fileName);
 
@@ -74,13 +81,13 @@ public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRe
     }
 
     private String assemblyApiUrl() {
-        return entsoeConfig.getApiUrlTemplate()
-                .replace("{document_type}", entsoeConfig.getDocumentType())
-                .replace("{process_type}", entsoeConfig.getProcessType())
-                .replace("{in_domain}", entsoeConfig.getInDomain())
-                .replace("{period_start}", entsoeConfig.getPeriodStart())
-                .replace("{period_end}", entsoeConfig.getPeriodEnd())
-                .replace("{api_url_token}", entsoeConfig.getApiUrlToken());
+        return entsoeConfig.getAPI_URL()
+                .replace("{document_type}", entsoeConfig.getDOCUMENT_TYPE())
+                .replace("{process_type}", entsoeConfig.getPROCESS_TYPE())
+                .replace("{in_domain}", entsoeConfig.getIN_DOMAIN())
+                .replace("{period_start}", entsoeConfig.getPERIOD_START())
+                .replace("{period_end}", entsoeConfig.getPERIOD_END())
+                .replace("{api_url_token}", entsoeConfig.getAPI_URL_TOKEN());
     }
 
     private String fetchDataFromApi(String apiUrl) throws Exception {

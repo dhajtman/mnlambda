@@ -13,17 +13,17 @@ public class EntsoeConfigTest {
     @Inject
     private EntsoeConfig entsoeConfig;
 
-    @Property(name = "entsoe.apiUrlTemplate")
-    private String apiUrlTemplate;
+    @Property(name = "API_URL")
+    private String API_URL;
 
     @Test
     public void testPropertyLoading() {
-        assertNotNull(apiUrlTemplate);
+        assertNotNull(API_URL);
     }
 
     @Test
     public void testEntsoeConfigValues() {
         assertNotNull(entsoeConfig);
-        assertNotNull(entsoeConfig.getApiUrlTemplate());
+        assertNotNull(entsoeConfig.getAPI_URL());
     }
 }
