@@ -49,7 +49,7 @@ public class EntsoeDataHandler extends MicronautRequestHandler<APIGatewayProxyRe
 
         LOG.info("Starting the Lambda function...");
         LOG.info("Event: " + input);
-        LOG.info("Environment Variables: " + System.getenv());
+//        LOG.info("Environment Variables: " + System.getenv());
         LOG.info("System Properties: " + System.getProperties());
 
         try {
